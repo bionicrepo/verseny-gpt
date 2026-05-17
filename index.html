@@ -1,0 +1,1193 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Game Center</title>
+  <style>
+    :root {
+      --bg: #07111b;
+      --bg-2: #0d1726;
+      --panel: #101b2d;
+      --panel-2: #13223a;
+      --line: rgba(255,255,255,.09);
+      --text: #eef4ff;
+      --muted: #9db3d6;
+      --accent: #53a8ff;
+      --accent-2: #62f1cb;
+      --danger: #ff6d8c;
+      --warn: #ffd166;
+      --ok: #89ffb5;
+      --shadow: 0 18px 50px rgba(0,0,0,.34);
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; min-height: 100%; }
+    body {
+      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(83,168,255,.14), transparent 28%),
+        radial-gradient(circle at top right, rgba(98,241,203,.10), transparent 26%),
+        linear-gradient(180deg, var(--bg), var(--bg-2));
+      overflow-x: hidden;
+      overflow-y: auto;
+    }
+
+    .app {
+      min-height: 100dvh;
+      display: block;
+    }
+
+    .view[hidden] { display: none !important; }
+
+    .menu-view {
+      min-height: 100dvh;
+      overflow: auto;
+      padding: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .menu-shell {
+      width: min(1180px, 100%);
+      display: grid;
+      gap: 22px;
+    }
+
+    .hero {
+      padding: 28px;
+      border-radius: 28px;
+      border: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(17,26,44,.92), rgba(10,16,28,.92));
+      box-shadow: var(--shadow);
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 14px;
+      border-radius: 999px;
+      background: rgba(83,168,255,.12);
+      border: 1px solid rgba(83,168,255,.22);
+      color: #dceaff;
+      font-size: 13px;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 16px 0 10px;
+      font-size: clamp(2.2rem, 5vw, 4.6rem);
+      line-height: .95;
+      letter-spacing: -.05em;
+    }
+
+    .hero p {
+      margin: 0;
+      max-width: 760px;
+      color: var(--muted);
+      line-height: 1.65;
+      font-size: clamp(1rem, 1.5vw, 1.16rem);
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 18px;
+    }
+
+    .card {
+      appearance: none;
+      text-align: left;
+      color: inherit;
+      cursor: pointer;
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      background: linear-gradient(180deg, rgba(17,27,46,.96), rgba(8,13,23,.96));
+      padding: 22px;
+      min-height: 280px;
+      box-shadow: var(--shadow);
+      display: grid;
+      gap: 16px;
+      transition: transform .2s ease, border-color .2s ease;
+    }
+
+    .card:hover,
+    .card:focus-visible {
+      transform: translateY(-6px);
+      border-color: rgba(98,241,203,.34);
+      outline: none;
+    }
+
+    .icon {
+      width: 72px;
+      height: 72px;
+      border-radius: 20px;
+      display: grid;
+      place-items: center;
+      font-size: 34px;
+      background: linear-gradient(135deg, rgba(83,168,255,.24), rgba(98,241,203,.12));
+      border: 1px solid rgba(255,255,255,.08);
+    }
+
+    .card h2 {
+      margin: 0 0 10px;
+      font-size: 1.55rem;
+      letter-spacing: -.03em;
+    }
+
+    .card p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-self: end;
+    }
+
+    .tag {
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.05);
+      border: 1px solid rgba(255,255,255,.07);
+      font-size: 13px;
+      color: #dce8ff;
+    }
+
+    .game-view {
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+      overflow-y: auto;
+    }
+
+    .topbar {
+      flex: 0 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: max(12px, env(safe-area-inset-top)) 14px 12px;
+      border-bottom: 1px solid rgba(255,255,255,.06);
+      background: linear-gradient(180deg, rgba(7,12,21,.94), rgba(7,12,21,.72));
+      backdrop-filter: blur(12px);
+    }
+
+    .topbar-left,
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .btn,
+    .chip {
+      appearance: none;
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.06);
+      color: var(--text);
+      min-height: 48px;
+      border-radius: 16px;
+      padding: 0 16px;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    .btn:hover,
+    .btn:focus-visible {
+      outline: none;
+      background: rgba(83,168,255,.15);
+      border-color: rgba(83,168,255,.28);
+    }
+
+    .title {
+      font-weight: 800;
+      letter-spacing: -.02em;
+      white-space: nowrap;
+      overflow-x: hidden;
+      overflow-y: auto;
+      text-overflow: ellipsis;
+    }
+
+    .stage-wrap {
+      flex: 1 1 auto;
+      min-height: 0;
+      padding: 10px;
+    }
+
+    .stage {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      min-height: 420px;
+      border-radius: 26px;
+      overflow-x: hidden;
+      overflow-y: auto;
+      border: 1px solid rgba(255,255,255,.08);
+      background: linear-gradient(180deg, #08111e, #03070d);
+      box-shadow: var(--shadow);
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+      touch-action: none;
+    }
+
+    .help {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      z-index: 2;
+      padding: 10px 12px;
+      border-radius: 16px;
+      background: rgba(7,12,21,.44);
+      border: 1px solid rgba(255,255,255,.08);
+      color: #dbe8ff;
+      font-size: 13px;
+      line-height: 1.45;
+      backdrop-filter: blur(8px);
+      pointer-events: none;
+    }
+
+    .overlay {
+      position: absolute;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 5;
+      padding: 16px;
+      background: radial-gradient(circle at center, rgba(10,16,28,.48), rgba(3,6,12,.88));
+      backdrop-filter: blur(8px);
+    }
+
+    .overlay.show { display: flex; }
+
+    .overlay-card {
+      width: min(420px, 100%);
+      padding: 28px;
+      text-align: center;
+      border-radius: 24px;
+      border: 1px solid rgba(255,255,255,.10);
+      background: linear-gradient(180deg, rgba(18,28,48,.96), rgba(8,14,24,.96));
+      box-shadow: 0 26px 70px rgba(0,0,0,.46);
+    }
+
+    .overlay-card h2 {
+      margin: 0 0 10px;
+      font-size: clamp(1.7rem, 3vw, 2.3rem);
+      letter-spacing: -.04em;
+    }
+
+    .overlay-card p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .big-score {
+      margin: 14px 0 18px;
+      font-size: clamp(2.1rem, 5vw, 3rem);
+      font-weight: 900;
+      letter-spacing: -.06em;
+    }
+
+    .actions {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .btn.primary {
+      background: linear-gradient(135deg, rgba(83,168,255,.34), rgba(98,241,203,.20));
+      border-color: rgba(98,241,203,.28);
+    }
+
+    .touch-layer {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 4;
+    }
+
+    .touch {
+      position: absolute;
+      pointer-events: auto;
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: none;
+      min-width: 82px;
+      min-height: 82px;
+      border-radius: 22px;
+      border: 1px solid rgba(255,255,255,.15);
+      background: rgba(7,12,21,.34);
+      color: var(--text);
+      font-size: 1.55rem;
+      font-weight: 900;
+      box-shadow: 0 12px 30px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.07);
+      backdrop-filter: blur(10px);
+    }
+
+    .touch:active,
+    .touch.active {
+      transform: scale(.96);
+      background: rgba(83,168,255,.28);
+      border-color: rgba(98,241,203,.32);
+    }
+
+    .touch.left { left: max(14px, env(safe-area-inset-left)); bottom: max(14px, env(safe-area-inset-bottom)); }
+    .touch.right { left: calc(max(14px, env(safe-area-inset-left)) + 94px); bottom: max(14px, env(safe-area-inset-bottom)); }
+    .touch.jump { right: max(14px, env(safe-area-inset-right)); bottom: max(14px, env(safe-area-inset-bottom)); min-width: 130px; font-size: 1.05rem; letter-spacing: .12em; }
+    .hidden { display: none !important; }
+
+    @media (max-width: 1024px) {
+      .cards { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 720px) {
+      .menu-view { padding: 18px; align-items: flex-start; }
+      .hero, .card, .stage { border-radius: 22px; }
+      .stage-wrap { padding: 6px; }
+      .help { top: auto; left: 10px; right: 10px; bottom: 108px; font-size: 12px; }
+    }
+
+    @media (max-width: 560px) {
+      .topbar {
+        flex-wrap: nowrap;
+        gap: 8px;
+        padding: max(8px, env(safe-area-inset-top)) 10px 8px;
+      }
+      .topbar-left, .topbar-right {
+        width: auto;
+        flex: 1 1 0;
+        min-width: 0;
+        gap: 8px;
+      }
+      .topbar-right { justify-content: flex-end; }
+      .btn, .chip {
+        min-height: 40px;
+        padding: 0 12px;
+        border-radius: 14px;
+        font-size: 14px;
+      }
+      .title {
+        max-width: 34vw;
+        font-size: 15px;
+      }
+      .stage-wrap { padding: 4px; }
+      .stage { min-height: calc(100dvh - 74px - env(safe-area-inset-top)); }
+      .touch { min-width: 76px; min-height: 76px; }
+      .touch.jump { min-width: 120px; min-height: 78px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <main id="menuView" class="view menu-view" aria-label="Főmenü">
+      <div class="menu-shell">
+        <section class="hero">
+          <div class="eyebrow">Game Center • Stabil újraépítés</div>
+          <h1>Válassz játékot</h1>
+          <p>Teljesen újraírva külön menü nézettel és külön játéknézettel. Nincs egymásra rajzolt réteg, nincs fél-aktív topbar, az irányítás pedig eseménysorból dolgozik.</p>
+        </section>
+
+        <section class="cards" aria-label="Játékok">
+          <button class="card" data-game="car" type="button">
+            <div class="icon">🚗</div>
+            <div>
+              <h2>Autóverseny</h2>
+              <p>3 sávos endless runner. Kerüld ki a forgalmat és élj túl minél tovább.</p>
+            </div>
+            <div class="tags">
+              <span class="tag">← → / A D</span>
+              <span class="tag">Mobil nyilak</span>
+              <span class="tag">Pontvadászat</span>
+            </div>
+          </button>
+
+          <button class="card" data-game="bike" type="button">
+            <div class="icon">🏍️</div>
+            <div>
+              <h2>Motorverseny</h2>
+              <p>4 sáv, kisebb hitbox, gyorsabb tempó és felvehető boost elemek.</p>
+            </div>
+            <div class="tags">
+              <span class="tag">Gyorsabb</span>
+              <span class="tag">Boost</span>
+              <span class="tag">Mobil nyilak</span>
+            </div>
+          </button>
+
+          <button class="card" data-game="dash" type="button">
+            <div class="icon">⬛</div>
+            <div>
+              <h2>Dash Jump</h2>
+              <p>Geometry Dash stílusú futás, ugrás, dupla ugrás, tüskék és szakadékok.</p>
+            </div>
+            <div class="tags">
+              <span class="tag">Space / W / ↑</span>
+              <span class="tag">UGRÁS gomb</span>
+              <span class="tag">Teljes tap</span>
+            </div>
+          </button>
+        </section>
+      </div>
+    </main>
+
+    <section id="gameView" class="view game-view" hidden aria-label="Játéknézet">
+      <header class="topbar">
+        <div class="topbar-left">
+          <button id="backBtn" class="btn" type="button">← Vissza a menübe</button>
+          <div id="gameTitle" class="title">Játék</div>
+        </div>
+        <div class="topbar-right">
+          <div id="boostChip" class="chip hidden">Boost: 0.0s</div>
+          <div class="chip">Pont: <span id="scoreEl" style="margin-left:8px">0</span></div>
+        </div>
+      </header>
+
+      <div class="stage-wrap">
+        <div id="stage" class="stage">
+          <canvas id="canvas" width="1280" height="720"></canvas>
+          <div id="helpEl" class="help"></div>
+
+          <div id="overlay" class="overlay" aria-live="polite">
+            <div class="overlay-card">
+              <h2 id="overlayTitle">Game Over</h2>
+              <p id="overlayText">Vége a körnek.</p>
+              <div id="overlayScore" class="big-score">0</div>
+              <div class="actions">
+                <button id="restartBtn" class="btn primary" type="button">Újraindulás</button>
+                <button id="menuBtn" class="btn" type="button">Menü</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="touch-layer">
+            <button id="leftBtn" class="touch left hidden" type="button" aria-label="Balra">◀</button>
+            <button id="rightBtn" class="touch right hidden" type="button" aria-label="Jobbra">▶</button>
+            <button id="jumpBtn" class="touch jump hidden" type="button" aria-label="Ugrás">UGRÁS</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    (() => {
+      'use strict';
+
+      const menuView = document.getElementById('menuView');
+      const gameView = document.getElementById('gameView');
+      const stage = document.getElementById('stage');
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas.getContext('2d');
+      const gameTitleEl = document.getElementById('gameTitle');
+      const scoreEl = document.getElementById('scoreEl');
+      const boostChip = document.getElementById('boostChip');
+      const helpEl = document.getElementById('helpEl');
+      const overlay = document.getElementById('overlay');
+      const overlayText = document.getElementById('overlayText');
+      const overlayScore = document.getElementById('overlayScore');
+      const leftBtn = document.getElementById('leftBtn');
+      const rightBtn = document.getElementById('rightBtn');
+      const jumpBtn = document.getElementById('jumpBtn');
+
+      const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
+      const lerp = (a, b, t) => a + (b - a) * t;
+      const rand = (a, b) => Math.random() * (b - a) + a;
+      const randInt = (a, b) => Math.floor(rand(a, b + 1));
+
+      // Magyar komment: A vezérlést számlálókkal kezeljük.
+      // Minden gombnyomás egy akciót tesz sorba, így nem vész el event a frame-ek között.
+      const input = {
+        left: 0,
+        right: 0,
+        jump: 0,
+        push(action) {
+          if (app.mode !== 'game' || app.gameOver) return;
+          this[action] += 1;
+        },
+        take(action) {
+          if (this[action] > 0) {
+            this[action] -= 1;
+            return true;
+          }
+          return false;
+        },
+        reset() {
+          this.left = 0;
+          this.right = 0;
+          this.jump = 0;
+          [leftBtn, rightBtn, jumpBtn].forEach(btn => btn.classList.remove('active'));
+        }
+      };
+
+      function bindTouch(btn, action) {
+        btn.addEventListener('pointerdown', (e) => {
+          e.preventDefault();
+          btn.classList.add('active');
+          input.push(action);
+        }, { passive: false });
+        const up = () => btn.classList.remove('active');
+        btn.addEventListener('pointerup', up);
+        btn.addEventListener('pointercancel', up);
+        btn.addEventListener('pointerleave', up);
+      }
+
+      bindTouch(leftBtn, 'left');
+      bindTouch(rightBtn, 'right');
+      bindTouch(jumpBtn, 'jump');
+
+      window.addEventListener('keydown', (e) => {
+        const k = e.key.toLowerCase();
+        if (["arrowleft", "arrowright", "arrowup", "a", "d", "w", " "].includes(k) || e.code === 'Space') {
+          e.preventDefault();
+        }
+        if (e.repeat) return;
+        if (k === 'arrowleft' || k === 'a') input.push('left');
+        if (k === 'arrowright' || k === 'd') input.push('right');
+        if (k === 'arrowup' || k === 'w' || k === ' ' || e.code === 'Space') input.push('jump');
+        if (e.key === 'Escape' && app.mode === 'game') app.backToMenu();
+      }, { passive: false });
+
+      canvas.addEventListener('pointerdown', (e) => {
+        if (app.mode === 'game' && app.currentGame && app.currentGame.type === 'dash' && !app.gameOver) {
+          e.preventDefault();
+          input.push('jump');
+        }
+      }, { passive: false });
+
+      class BaseGame {
+        constructor(type, title) {
+          this.type = type;
+          this.title = title;
+          this.score = 0;
+          this.dead = false;
+        }
+
+        reset() {
+          this.score = 0;
+          this.dead = false;
+        }
+
+        end(message) {
+          if (this.dead) return;
+          this.dead = true;
+          app.gameOver = true;
+          app.showOverlay(message, Math.floor(this.score));
+        }
+      }
+
+      class RoadGame extends BaseGame {
+        constructor(type, title, cfg) {
+          super(type, title);
+          this.cfg = cfg;
+          this.reset();
+        }
+
+        reset() {
+          super.reset();
+          this.speed = this.cfg.startSpeed;
+          this.roadOffset = 0;
+          this.spawnTimer = 0;
+          this.pickupTimer = 1.2;
+          this.flash = 0;
+          this.boost = 0;
+          this.obstacles = [];
+          this.pickups = [];
+          this.player = {
+            lane: Math.floor(this.cfg.lanes / 2),
+            x: 0,
+            y: 0,
+            width: this.cfg.playerWidth,
+            height: this.cfg.playerHeight
+          };
+        }
+
+        getWorld() {
+          const w = canvas.width;
+          const h = canvas.height;
+          const roadWidth = Math.min(w * this.cfg.roadRatio, this.cfg.maxRoadWidth);
+          const roadLeft = (w - roadWidth) / 2;
+          const laneWidth = roadWidth / this.cfg.lanes;
+          const narrow = stage.clientWidth <= 640;
+          const bottomClearance = narrow ? 190 : 110;
+          return { w, h, roadWidth, roadLeft, laneWidth, playerY: h - this.player.height - bottomClearance };
+        }
+
+        laneCenter(index) {
+          const wr = this.getWorld();
+          return wr.roadLeft + wr.laneWidth * index + wr.laneWidth / 2;
+        }
+
+        update(dt) {
+          if (input.take('left')) this.player.lane = clamp(this.player.lane - 1, 0, this.cfg.lanes - 1);
+          if (input.take('right')) this.player.lane = clamp(this.player.lane + 1, 0, this.cfg.lanes - 1);
+
+          this.speed += dt * this.cfg.accel;
+          this.boost = Math.max(0, this.boost - dt);
+          this.flash = Math.max(0, this.flash - dt);
+          const moveSpeed = this.speed + (this.boost > 0 ? this.cfg.boostExtra : 0);
+          this.score += dt * moveSpeed * 0.05;
+          this.roadOffset = (this.roadOffset + moveSpeed * dt) % 90;
+
+          const wr = this.getWorld();
+          const targetX = this.laneCenter(this.player.lane);
+          this.player.x = this.player.x ? lerp(this.player.x, targetX, Math.min(1, dt * this.cfg.turnSpeed)) : targetX;
+          this.player.y = wr.playerY;
+
+          this.spawnTimer -= dt;
+          if (this.spawnTimer <= 0) {
+            this.spawnObstacle();
+            this.spawnTimer = rand(this.cfg.spawnMin, this.cfg.spawnMax);
+          }
+
+          if (this.cfg.canBoost) {
+            this.pickupTimer -= dt;
+            if (this.pickupTimer <= 0) {
+              this.spawnPickup();
+              this.pickupTimer = rand(2.2, 3.9);
+            }
+          }
+
+          const px = this.player.x - this.player.width / 2 + this.cfg.hitInsetX;
+          const py = this.player.y + this.cfg.hitInsetY;
+          const pw = this.player.width - this.cfg.hitInsetX * 2;
+          const ph = this.player.height - this.cfg.hitInsetY * 2;
+
+          this.obstacles = this.obstacles.filter(ob => {
+            ob.y += moveSpeed * dt;
+            ob.x = this.laneCenter(ob.lane);
+            const left = ob.x - ob.width / 2 + ob.inset;
+            const top = ob.y + ob.inset;
+            const width = ob.width - ob.inset * 2;
+            const height = ob.height - ob.inset * 2;
+            const hit = px < left + width && px + pw > left && py < top + height && py + ph > top;
+            if (hit) this.end('Ütközés.');
+            return ob.y < canvas.height + ob.height + 20;
+          });
+
+          this.pickups = this.pickups.filter(p => {
+            p.y += (moveSpeed - 40) * dt;
+            p.x = this.laneCenter(p.lane);
+            p.phase += dt * 6;
+            const s = p.size;
+            const hit = px < p.x + s / 2 && px + pw > p.x - s / 2 && py < p.y + s / 2 && py + ph > p.y - s / 2;
+            if (hit) {
+              this.boost = Math.min(7, this.boost + 2.5);
+              this.flash = 0.18;
+              this.score += 25;
+              return false;
+            }
+            return p.y < canvas.height + 40;
+          });
+        }
+
+        spawnObstacle() {
+          const wr = this.getWorld();
+          const lane = randInt(0, this.cfg.lanes - 1);
+          const width = wr.laneWidth * this.cfg.obWidthRatio;
+          const height = width * rand(1.35, 1.8);
+          const palette = [
+            ['#ff7b7b', '#90344c'],
+            ['#ffd166', '#8d671f'],
+            ['#87caff', '#315d8d'],
+            ['#bf95ff', '#5d2d87']
+          ][randInt(0, 3)];
+          this.obstacles.push({
+            lane,
+            x: this.laneCenter(lane),
+            y: -height - rand(30, 140),
+            width,
+            height,
+            inset: 10,
+            c1: palette[0],
+            c2: palette[1]
+          });
+        }
+
+        spawnPickup() {
+          const wr = this.getWorld();
+          const lane = randInt(0, this.cfg.lanes - 1);
+          this.pickups.push({
+            lane,
+            x: this.laneCenter(lane),
+            y: -40,
+            size: wr.laneWidth * 0.26,
+            phase: Math.random() * Math.PI * 2
+          });
+        }
+
+        roundRect(x, y, w, h, r) {
+          ctx.beginPath();
+          ctx.moveTo(x + r, y);
+          ctx.arcTo(x + w, y, x + w, y + h, r);
+          ctx.arcTo(x + w, y + h, x, y + h, r);
+          ctx.arcTo(x, y + h, x, y, r);
+          ctx.arcTo(x, y, x + w, y, r);
+          ctx.closePath();
+        }
+
+        drawRoad() {
+          const wr = this.getWorld();
+          ctx.fillStyle = '#07111d';
+          ctx.fillRect(0, 0, wr.w, wr.h);
+
+          const glow = ctx.createLinearGradient(0, 0, 0, wr.h);
+          glow.addColorStop(0, 'rgba(83,168,255,.12)');
+          glow.addColorStop(.6, 'rgba(83,168,255,.02)');
+          glow.addColorStop(1, 'rgba(0,0,0,.15)');
+          ctx.fillStyle = glow;
+          ctx.fillRect(0, 0, wr.w, wr.h);
+
+          ctx.fillStyle = '#192537';
+          ctx.fillRect(wr.roadLeft - 24, 0, 24, wr.h);
+          ctx.fillRect(wr.roadLeft + wr.roadWidth, 0, 24, wr.h);
+
+          const rg = ctx.createLinearGradient(wr.roadLeft, 0, wr.roadLeft + wr.roadWidth, 0);
+          rg.addColorStop(0, '#161d29');
+          rg.addColorStop(.5, '#1c2636');
+          rg.addColorStop(1, '#161d29');
+          ctx.fillStyle = rg;
+          ctx.fillRect(wr.roadLeft, 0, wr.roadWidth, wr.h);
+
+          ctx.strokeStyle = 'rgba(255,255,255,.08)';
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          ctx.moveTo(wr.roadLeft, 0);
+          ctx.lineTo(wr.roadLeft, wr.h);
+          ctx.moveTo(wr.roadLeft + wr.roadWidth, 0);
+          ctx.lineTo(wr.roadLeft + wr.roadWidth, wr.h);
+          ctx.stroke();
+
+          for (let i = 1; i < this.cfg.lanes; i++) {
+            const x = wr.roadLeft + wr.laneWidth * i;
+            for (let y = -80 + this.roadOffset; y < wr.h + 80; y += 120) {
+              ctx.fillStyle = 'rgba(255,255,255,.32)';
+              ctx.fillRect(x - 4, y, 8, 58);
+            }
+          }
+        }
+
+        drawPlayer() {
+          const p = this.player;
+          ctx.save();
+          ctx.translate(p.x, p.y + p.height / 2);
+          ctx.shadowColor = this.type === 'bike' ? 'rgba(255,209,102,.42)' : 'rgba(83,168,255,.35)';
+          ctx.shadowBlur = this.boost > 0 ? 22 : 12;
+
+          if (this.type === 'car') {
+            ctx.fillStyle = '#74c0fc';
+            this.roundRect(-p.width / 2, -p.height / 2, p.width, p.height, 16); ctx.fill();
+            ctx.fillStyle = '#e3f4ff';
+            this.roundRect(-p.width * .22, -p.height * .4, p.width * .44, p.height * .28, 9); ctx.fill();
+            ctx.fillStyle = '#192537';
+            this.roundRect(-p.width * .34, -p.height * .1, p.width * .68, p.height * .3, 11); ctx.fill();
+            ctx.fillStyle = '#0c121b';
+            this.roundRect(-p.width * .44, -p.height * .36, p.width * .14, p.height * .26, 8); ctx.fill();
+            this.roundRect(p.width * .30, -p.height * .36, p.width * .14, p.height * .26, 8); ctx.fill();
+            this.roundRect(-p.width * .44, p.height * .10, p.width * .14, p.height * .26, 8); ctx.fill();
+            this.roundRect(p.width * .30, p.height * .10, p.width * .14, p.height * .26, 8); ctx.fill();
+          } else {
+            ctx.fillStyle = '#ffd166';
+            this.roundRect(-p.width * .26, -p.height / 2, p.width * .52, p.height, 18); ctx.fill();
+            ctx.fillStyle = '#dff8ff';
+            this.roundRect(-p.width * .14, -p.height * .36, p.width * .28, p.height * .22, 10); ctx.fill();
+            ctx.fillStyle = '#0d1320';
+            this.roundRect(-p.width * .42, -p.height * .42, p.width * .16, p.height * .28, 8); ctx.fill();
+            this.roundRect(p.width * .26, -p.height * .42, p.width * .16, p.height * .28, 8); ctx.fill();
+            this.roundRect(-p.width * .42, p.height * .16, p.width * .16, p.height * .28, 8); ctx.fill();
+            this.roundRect(p.width * .26, p.height * .16, p.width * .16, p.height * .28, 8); ctx.fill();
+          }
+          ctx.restore();
+        }
+
+        drawObstacles() {
+          for (const ob of this.obstacles) {
+            ctx.save();
+            ctx.translate(ob.x, ob.y + ob.height / 2);
+            const g = ctx.createLinearGradient(0, -ob.height / 2, 0, ob.height / 2);
+            g.addColorStop(0, ob.c1);
+            g.addColorStop(1, ob.c2);
+            ctx.fillStyle = g;
+            this.roundRect(-ob.width / 2, -ob.height / 2, ob.width, ob.height, 16);
+            ctx.fill();
+            ctx.restore();
+          }
+        }
+
+        drawPickups() {
+          for (const p of this.pickups) {
+            const pulse = 1 + Math.sin(p.phase) * .12;
+            ctx.save();
+            ctx.translate(p.x, p.y);
+            ctx.scale(pulse, pulse);
+            ctx.shadowColor = 'rgba(255,209,102,.44)';
+            ctx.shadowBlur = 22;
+            ctx.fillStyle = '#ffd166';
+            ctx.beginPath();
+            ctx.arc(0, 0, p.size * .68, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#101826';
+            ctx.fillRect(-p.size * .18, -p.size * .5, p.size * .36, p.size);
+            ctx.fillRect(-p.size * .42, -p.size * .1, p.size * .84, p.size * .2);
+            ctx.restore();
+          }
+        }
+
+        drawHud() {
+          ctx.fillStyle = 'rgba(6,10,18,.55)';
+          ctx.fillRect(22, 22, 220, this.cfg.canBoost ? 86 : 56);
+          ctx.strokeStyle = 'rgba(255,255,255,.08)';
+          ctx.strokeRect(22, 22, 220, this.cfg.canBoost ? 86 : 56);
+          ctx.fillStyle = '#eff6ff';
+          ctx.font = '700 20px Inter, sans-serif';
+          ctx.fillText(this.title, 36, 56);
+          if (this.cfg.canBoost) {
+            ctx.fillStyle = '#a4efde';
+            ctx.font = '600 15px Inter, sans-serif';
+            ctx.fillText('Boost: ' + (this.boost > 0 ? this.boost.toFixed(1) + 's' : 'nincs'), 36, 81);
+          }
+        }
+
+        render() {
+          this.drawRoad();
+          this.drawObstacles();
+          this.drawPickups();
+          this.drawPlayer();
+          this.drawHud();
+          if (this.flash > 0) {
+            ctx.fillStyle = 'rgba(255,209,102,' + (this.flash * 2.8) + ')';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+          }
+        }
+      }
+
+      class CarGame extends RoadGame {
+        constructor() {
+          super('car', 'Autóverseny', {
+            lanes: 3,
+            roadRatio: .64,
+            maxRoadWidth: 520,
+            startSpeed: 350,
+            accel: 10,
+            turnSpeed: 14,
+            playerWidth: 74,
+            playerHeight: 132,
+            hitInsetX: 12,
+            hitInsetY: 10,
+            obWidthRatio: .54,
+            spawnMin: .82,
+            spawnMax: 1.24,
+            canBoost: false,
+            boostExtra: 0
+          });
+        }
+      }
+
+      class BikeGame extends RoadGame {
+        constructor() {
+          super('bike', 'Motorverseny', {
+            lanes: 4,
+            roadRatio: .70,
+            maxRoadWidth: 560,
+            startSpeed: 420,
+            accel: 12,
+            turnSpeed: 18,
+            playerWidth: 44,
+            playerHeight: 116,
+            hitInsetX: 8,
+            hitInsetY: 8,
+            obWidthRatio: .44,
+            spawnMin: .58,
+            spawnMax: .96,
+            canBoost: true,
+            boostExtra: 160
+          });
+        }
+      }
+
+      class DashGame extends BaseGame {
+        constructor() {
+          super('dash', 'Dash Jump');
+          this.reset();
+        }
+
+        reset() {
+          super.reset();
+          this.speed = 430;
+          this.gravity = 1850;
+          this.hazards = [];
+          this.spawnX = 0;
+          this.floorOffset = 0;
+          this.player = {
+            x: 0,
+            y: 0,
+            size: 54,
+            vy: 0,
+            jumped: false,
+            rot: 0
+          };
+          this.layout();
+          this.snapToGround();
+          this.seed();
+        }
+
+        layout() {
+          this.groundY = canvas.height * .74;
+          this.player.x = canvas.width * .22;
+        }
+
+        snapToGround() {
+          this.player.y = this.groundY - this.player.size;
+          this.player.vy = 0;
+          this.player.jumped = false;
+        }
+
+        seed() {
+          let x = canvas.width + 180;
+          for (let i = 0; i < 8; i++) x = this.addSpikeGroup(x, true);
+          this.spawnX = x;
+        }
+
+        addSpikeGroup(x, early = false) {
+          const width = rand(42, 76);
+          const height = rand(34, 58);
+          this.hazards.push({ kind: 'spike', x, width, height });
+          return x + width + rand(early ? 220 : 260, early ? 340 : 430);
+        }
+
+        jump() {
+          if (this.player.jumped) return;
+          this.player.vy = -760;
+          this.player.jumped = true;
+        }
+
+        update(dt) {
+          this.groundY = canvas.height * .74;
+          this.player.x = canvas.width * .22;
+          if (input.take('jump') || input.take('left') || input.take('right')) this.jump();
+
+          this.speed += dt * 7.5;
+          this.score += dt * 14 * (this.speed / 430);
+          this.floorOffset = (this.floorOffset + this.speed * dt) % 56;
+          this.player.vy += this.gravity * dt;
+          this.player.y += this.player.vy * dt;
+          this.player.rot += dt * 4.2;
+
+          if (this.player.y + this.player.size >= this.groundY) {
+            this.snapToGround();
+          }
+
+          for (const hz of this.hazards) hz.x -= this.speed * dt;
+          while (this.spawnX < canvas.width + 520) this.spawnX = this.addSpikeGroup(this.spawnX, false);
+          this.hazards = this.hazards.filter(h => h.x + h.width > -220);
+
+          const px = this.player.x + this.player.size * .18;
+          const py = this.player.y + this.player.size * .12;
+          const pw = this.player.size * .64;
+          const ph = this.player.size * .82;
+
+          for (const hz of this.hazards) {
+            const sx = hz.x + 6;
+            const sy = this.groundY - hz.height;
+            const sw = hz.width - 12;
+            const sh = hz.height;
+            if (px < sx + sw && px + pw > sx && py < sy + sh && py + ph > sy) {
+              this.end('Tüskére estél.');
+              break;
+            }
+          }
+        }
+
+        render() {
+          const w = canvas.width;
+          const h = canvas.height;
+          const sky = ctx.createLinearGradient(0, 0, 0, h);
+          sky.addColorStop(0, '#091427');
+          sky.addColorStop(.55, '#0d1a33');
+          sky.addColorStop(1, '#060b16');
+          ctx.fillStyle = sky;
+          ctx.fillRect(0, 0, w, h);
+
+          ctx.fillStyle = 'rgba(83,168,255,.08)';
+          for (let i = 0; i < 9; i++) {
+            const x = ((i * 220) - (this.score * 4)) % (w + 260) - 140;
+            const hh = 160 + (i % 4) * 90;
+            ctx.fillRect(x, h - 180 - hh, 90 + (i % 3) * 25, hh);
+          }
+
+          ctx.fillStyle = '#0d1f1f';
+          ctx.fillRect(0, this.groundY, w, h - this.groundY);
+          ctx.fillStyle = '#193931';
+          ctx.fillRect(0, this.groundY - 12, w, 12);
+
+          ctx.strokeStyle = 'rgba(255,255,255,.07)';
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          for (let x = -this.floorOffset; x < w + 56; x += 56) {
+            ctx.moveTo(x, this.groundY + 24);
+            ctx.lineTo(x + 24, this.groundY + 24);
+          }
+          ctx.stroke();
+
+          for (const hz of this.hazards) {
+            const count = Math.max(2, Math.floor(hz.width / 18));
+            const sw = hz.width / count;
+            for (let i = 0; i < count; i++) {
+              ctx.fillStyle = i % 2 === 0 ? '#ff637d' : '#ffa36f';
+              ctx.beginPath();
+              ctx.moveTo(hz.x + i * sw, this.groundY);
+              ctx.lineTo(hz.x + i * sw + sw / 2, this.groundY - hz.height);
+              ctx.lineTo(hz.x + (i + 1) * sw, this.groundY);
+              ctx.closePath();
+              ctx.fill();
+            }
+          }
+
+          ctx.save();
+          ctx.translate(this.player.x + this.player.size / 2, this.player.y + this.player.size / 2);
+          if (this.player.jumped) ctx.rotate(this.player.rot);
+          ctx.shadowColor = 'rgba(98,241,203,.28)';
+          ctx.shadowBlur = 16;
+          ctx.fillStyle = '#62f1cb';
+          ctx.fillRect(-this.player.size / 2, -this.player.size / 2, this.player.size, this.player.size);
+          ctx.fillStyle = '#e8ffff';
+          ctx.fillRect(-this.player.size * .16, -this.player.size * .16, this.player.size * .32, this.player.size * .32);
+          ctx.restore();
+
+          ctx.fillStyle = 'rgba(6,10,18,.55)';
+          ctx.fillRect(22, 22, 220, 70);
+          ctx.strokeStyle = 'rgba(255,255,255,.08)';
+          ctx.strokeRect(22, 22, 220, 70);
+          ctx.fillStyle = '#eff6ff';
+          ctx.font = '700 20px Inter, sans-serif';
+          ctx.fillText('Dash Jump', 36, 52);
+          ctx.fillStyle = '#b8d8ff';
+          ctx.font = '600 15px Inter, sans-serif';
+          ctx.fillText('Egy ugrás, folyamatos pálya', 36, 78);
+        }
+      }
+
+      const app = {
+        mode: 'menu',
+        currentGame: null,
+        gameOver: false,
+        lastTs: 0,
+
+        showView(name) {
+          this.mode = name;
+          const menuOn = name === 'menu';
+          menuView.hidden = !menuOn;
+          gameView.hidden = menuOn;
+        },
+
+        resizeCanvas() {
+          if (gameView.hidden) return;
+          const rect = stage.getBoundingClientRect();
+          const dpr = Math.min(window.devicePixelRatio || 1, 2);
+          const w = Math.max(320, Math.floor(rect.width * dpr));
+          const h = Math.max(420, Math.floor(rect.height * dpr));
+          if (canvas.width !== w || canvas.height !== h) {
+            canvas.width = w;
+            canvas.height = h;
+            if (this.currentGame && this.currentGame.type === 'dash') this.currentGame.layout();
+          }
+        },
+
+        startGame(type) {
+          this.gameOver = false;
+          input.reset();
+          overlay.classList.remove('show');
+          this.showView('game');
+          this.resizeCanvas();
+
+          if (type === 'car') this.currentGame = new CarGame();
+          if (type === 'bike') this.currentGame = new BikeGame();
+          if (type === 'dash') this.currentGame = new DashGame();
+
+          gameTitleEl.textContent = this.currentGame.title;
+          helpEl.innerHTML = this.currentGame.type === 'dash'
+            ? '<strong>Irányítás:</strong> Space / W / ↑, az UGRÁS gomb, vagy a teljes képernyő érintése. Nincs dupla ugrás.'
+            : '<strong>Irányítás:</strong> A / D vagy ← / →. Mobilon az alsó gombokkal válthatsz sávot.';
+
+          leftBtn.classList.toggle('hidden', this.currentGame.type === 'dash');
+          rightBtn.classList.toggle('hidden', this.currentGame.type === 'dash');
+          jumpBtn.classList.toggle('hidden', this.currentGame.type !== 'dash');
+          boostChip.classList.toggle('hidden', this.currentGame.type !== 'bike');
+          scoreEl.textContent = '0';
+        },
+
+        showOverlay(message, score) {
+          overlayText.textContent = message;
+          overlayScore.textContent = String(score);
+          overlay.classList.add('show');
+        },
+
+        restart() {
+          if (!this.currentGame) return;
+          this.gameOver = false;
+          input.reset();
+          overlay.classList.remove('show');
+          this.currentGame.reset();
+          if (this.currentGame.type === 'dash') this.currentGame.layout();
+        },
+
+        backToMenu() {
+          this.currentGame = null;
+          this.gameOver = false;
+          input.reset();
+          overlay.classList.remove('show');
+          scoreEl.textContent = '0';
+          boostChip.classList.add('hidden');
+          gameTitleEl.textContent = 'Játék';
+          helpEl.textContent = '';
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          this.showView('menu');
+        },
+
+        frame(ts) {
+          const dt = Math.min(0.032, ((ts - this.lastTs) || 16.67) / 1000);
+          this.lastTs = ts;
+
+          if (this.mode === 'game' && this.currentGame) {
+            if (!this.gameOver) this.currentGame.update(dt);
+            this.currentGame.render();
+            scoreEl.textContent = String(Math.floor(this.currentGame.score));
+            if (this.currentGame.type === 'bike') boostChip.textContent = 'Boost: ' + this.currentGame.boost.toFixed(1) + 's';
+          }
+
+          requestAnimationFrame(this.frame.bind(this));
+        }
+      };
+
+      document.querySelectorAll('[data-game]').forEach(btn => {
+        btn.addEventListener('click', () => app.startGame(btn.dataset.game));
+      });
+      document.getElementById('backBtn').addEventListener('click', () => app.backToMenu());
+      document.getElementById('menuBtn').addEventListener('click', () => app.backToMenu());
+      document.getElementById('restartBtn').addEventListener('click', () => app.restart());
+      window.addEventListener('resize', () => app.resizeCanvas());
+
+      app.showView('menu');
+      requestAnimationFrame(app.frame.bind(app));
+    })();
+  </script>
+</body>
+</html>
